@@ -131,3 +131,32 @@ CREATE TABLE transaccion (
     FOREIGN KEY (id_subcategoria) REFERENCES subcategoria(id_subcategoria),
     FOREIGN KEY (id_obligacion) REFERENCES obligacion_fija(id_obligacion)
 );
+
+
+CREATE INDEX idx_transaccion_anio_mes ON transaccion(anio, mes);
+CREATE INDEX idx_transaccion_subcat ON transaccion(id_subcategoria);
+
+ALTER TABLE categoria ADD CONSTRAINT chk_tipo_categoria
+	CHECK(tipo_categoria IN ('ingreso','gasto','ahorro'));
+
+ALTER TABLE transaccion ADD CONSTRAINT chk_tipo_transaccion
+	CHECK(tipo_transaccion IN ('ingreso','gasto','ahorro'));
+
+ALTER TABLE transaccion ADD CONSTRAINT chk_metodo_pago
+	CHECK(metodo_pago IN ('efectivo','tarjeta_debito','tarjeta_credito', 'transferencia'));
+
+ALTER TABLE usuario ADD CONSTRAINT chk_estado_usuario
+	CHECK(estado IN ('activo','inactivo'));
+
+ALTER TABLE presupuesto ADD CONSTRAINT chk_estado_presupuesto
+	CHECK(estado IN ('activo','cerrado','borrador'));
+
+ALTER TABLE presupuesto ADD CONSTRAINT chk_vigencia_presupuesto
+	CHECK ((anio_fin * 12 + mes_fin) >= (anio_inicio * 12 > mes_inicio));
+
+ALTER TABLE presupuesto_detalle
+	ADD CONSTRAINT uq_presupuesto_subcategoria UNIQUE (id_presupuesto, id_subcategoria); 
+
+
+
+
