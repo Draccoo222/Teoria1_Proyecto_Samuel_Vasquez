@@ -62,9 +62,29 @@ BEGIN
 	RETURN COALESCE(calc_presupuesto, 0) - calc_ejecutado;
 END;
 
+CREATE OR REPLACE FUNCTION fn_obtener_total_categoria_mes (
+    p_id_categoria   INTEGER,
+    p_id_presupuesto INTEGER,
+    p_anio           INTEGER,
+    p_mes            INTEGER
+)
+RETURNS DECIMAL(12,2)
+LANGUAGE SQL
+READS SQL DATA
+BEGIN
+    DECLARE v_total DECIMAL(12,2);
+
+    SELECT COALESCE(SUM(pd.monto_mensual), 0) INTO v_total
+    FROM presupuesto_detalle pd
+    INNER JOIN subcategoria s ON s.id_subcategoria = pd.id_subcategoria
+    WHERE s.id_categoria = p_id_categoria
+      AND pd.id_presupuesto = p_id_presupuesto;
+
+    RETURN v_total;
+END;
 
 
-CREATE FUNCTION fn_obtener_total_categoria_mes(
+CREATE FUNCTION fn_obtener_total_ejecutado_categoria_mes(
 p_id_categoria integer, p_anio integer, p_mes integer
 )
 RETURNS decimal(12,2)
@@ -203,9 +223,6 @@ BEGIN
 	
 	RETURN promedio;
 END;
-
-
-
 
 
 
