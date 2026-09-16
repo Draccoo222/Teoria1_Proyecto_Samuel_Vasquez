@@ -30,7 +30,7 @@ BEGIN
 END;
 
 
-CREATE PROCEDURE sp_actualizar_presupuesto(
+CREATE OR REPLACE PROCEDURE sp_actualizar_presupuesto(
 	IN p_id_presupuesto INTEGER,
 	IN p_nombre_descriptivo varchar(150),
 	IN p_anio_inicio INTEGER,
@@ -47,7 +47,7 @@ BEGIN
 	UPDATE presupuesto
 	
 	SET nombre_descriptivo = p_nombre_descriptivo,
-		anio_inicio = anio_inicio, mes_inicio = p_mes_inicio, 
+		anio_inicio = p_anio_inicio, mes_inicio = p_mes_inicio, 
 		anio_fin = p_anio_fin, mes_fin = p_mes_fin,
 		total_ingresos_planificados = p_total_ingresos_planificados, 
 		total_gastos_planificados = p_total_gastos_planificados,

@@ -152,7 +152,7 @@ ALTER TABLE presupuesto ADD CONSTRAINT chk_estado_presupuesto
 	CHECK(estado IN ('activo','cerrado','borrador'));
 
 ALTER TABLE presupuesto ADD CONSTRAINT chk_vigencia_presupuesto
-	CHECK ((anio_fin * 12 + mes_fin) >= (anio_inicio * 12 > mes_inicio));
+	CHECK ((anio_fin * 12 + mes_fin) >= (anio_inicio * 12 + mes_inicio));
 
 ALTER TABLE presupuesto_detalle
 	ADD CONSTRAINT uq_presupuesto_subcategoria UNIQUE (id_presupuesto, id_subcategoria); 

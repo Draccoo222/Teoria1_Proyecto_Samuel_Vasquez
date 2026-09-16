@@ -108,7 +108,7 @@ BEGIN
 END;
 
 
-CREATE PROCEDURE sp_listar_transacciones_preupuesto(
+CREATE PROCEDURE sp_listar_transacciones_presupuesto(
 	IN p_id_presupuesto integer, IN p_tipo_transaccion varchar(20),
 	IN p_id_subcategoria integer
 )
