@@ -172,4 +172,38 @@ BEGIN
 	
 END;
 
+CREATE OR REPLACE PROCEDURE sp_obtener_presupuesto_json(
+	IN p_id_presupuesto INTEGER,
+	OUT p_json_resultado CLOB(1M)
+)
+LANGUAGE SQL
+BEGIN
+	DECLARE v_detalles CLOB(1M);
+
+	SELECT JSON_ARRAYAGG(
+		JSON_OBJECT(
+			KEY 'categoria' VALUE c.nombre_categoria,
+			KEY 'subcategoria' VALUE s.nombre_subcategoria,
+			KEY 'monto_asignado' VALUE pd.monto_mensual
+		)FORMAT JSON
+	)INTO v_detalles
+	FROM presupuesto_detalle pd
+	INNER JOIN subcategoria s ON s.id_subcategoria = pd.id_subcategoria
+	INNER JOIN categoria c ON c.id_categoria = s.id_categoria
+	WHERE pd.id_presupuesto = id_presupuesto;
+			
+	SELECT JSON_OBJECT(
+		KEY 'id_presupuesto' VALUE id_presupuesto,
+		KEY 'nombre' VALUE nombre_descriptivo, 
+		KEY 'total_ingresos' VALUE total_ingresos_planificados,
+		KEY 'total_gastos' VALUE total_gastos_planificados,
+		KEY 'detalles' VALUE v_detalles FORMAT JSON 
+	) INTO p_json_resultado
+	FROM presupuesto p
+	WHERE id_presupuesto = p_id_presupuesto;
+END;
+
+CALL sp_obtener_presupuesto_json(1, ?);
+
+
 
