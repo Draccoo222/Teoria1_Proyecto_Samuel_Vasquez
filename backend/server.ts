@@ -388,24 +388,15 @@ app.get('./api/alertas', async(req, res) =>{
 
 // Cerrar Presupuesto
 
-app.get('./api/presupuestos/:id/cerrar', async(req, res) =>{
-    const {modificado_por} = req.body;
-    try{
+app.put('/api/presupuestos/:id/cerrar', async (req, res) => {
+    const { modificado_por } = req.body;
+    try {
         const conn = await ibmdb.open(connStr);
-
-        
         const data = await conn.query(`CALL sp_cerrar_presupuesto(?, ?)`, [req.params.id, modificado_por]);
         await conn.close();
         res.status(200).json({ mensaje: "Presupuesto cerrado exitosamente", resumen: data });
-
-
-    }catch(e:any){
-        res.status(500).json({error: e.message});
-    }
-
-
-
-})
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
 
 app.listen(port, () => {
     console.log(`listo en http://localhost:${port}`);

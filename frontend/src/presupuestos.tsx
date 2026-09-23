@@ -49,6 +49,36 @@ export default function Presupuestos({ usuario }: { usuario: any }) {
         } catch (error) { console.error(error); }
     };
 
+    const handleCerrarPresupuesto = async (idPresupuesto: number) => {
+        if (!window.confirm("¿Seguro que deseas CERRAR este presupuesto? Ya no se podrán agregar transacciones.")) return;
+        
+        try {
+            const res = await fetch(`http://localhost:3000/api/presupuestos/${idPresupuesto}/cerrar`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ modificado_por: usuario.ID_USUARIO })
+            });
+            
+            // Verificamos si la respuesta realmente es JSON antes de procesarla
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("El servidor no devolvió un JSON. ¿Reiniciaste el backend?");
+            }
+
+            const data = await res.json();
+            
+            if (res.ok) {
+                alert("✅ Presupuesto cerrado con éxito.");
+                cargarPresupuestos();
+            } else {
+                alert(`❌ Error de validación (Db2): ${data.error}`);
+            }
+        } catch (error: any) { 
+            console.error("Error completo:", error); 
+            alert(`⚠️ Error crítico: ${error.message}`); 
+        }
+    };
+
     return (
         <div style={{ background: 'white', padding: '30px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             <h2 style={{ color: '#2c3e50', marginTop: 0 }}>Gestión de Presupuestos</h2>
@@ -82,19 +112,33 @@ export default function Presupuestos({ usuario }: { usuario: any }) {
                                 <th style={{ padding: '10px' }}>Estado</th>
                             </tr>
                         </thead>
-                        <tbody>
+                         <tbody>
                             {presupuestos.map((p) => (
                                 <tr key={p.ID_PRESUPUESTO} style={{ borderBottom: '1px solid #eee' }}>
                                     <td style={{ padding: '10px' }}>{p.ID_PRESUPUESTO}</td>
-                                    <td style={{ padding: '10px' }}>{p.NOMBRE_DESCRIPTIVO}</td>
+                                    <td style={{ padding: '10px' }}><strong>{p.NOMBRE_DESCRIPTIVO}</strong></td>
                                     <td style={{ padding: '10px' }}>{p.ANIO_INICIO}/{p.MES_INICIO} - {p.ANIO_FIN}/{p.MES_FIN}</td>
-                                    <td style={{ padding: '10px' }}>
-                                        <span style={{ background: p.ESTADO === 'activo' ? '#d4edda' : '#f8d7da', padding: '4px 8px', borderRadius: '10px', fontSize: '12px' }}>
-                                            {p.ESTADO}
+                                    
+                                    {/* AQUÍ VA LA COLUMNA DE ESTADO CON EL BOTÓN */}
+                                    <td style={{ padding: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <span style={{ background: p.ESTADO === 'activo' ? '#d4edda' : '#f8d7da', color: p.ESTADO === 'activo' ? '#155724' : '#721c24', padding: '4px 8px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold' }}>
+                                            {p.ESTADO.toUpperCase()}
                                         </span>
+                                        
+                                        {/* El botón SOLO aparece si el estado actual es 'activo' */}
+                                        {p.ESTADO === 'activo' && (
+                                            <button 
+                                                onClick={() => handleCerrarPresupuesto(p.ID_PRESUPUESTO)} 
+                                                style={{ background: '#343a40', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                                                title="Cerrar presupuesto (Bloquea nuevas transacciones)"
+                                            >
+                                                🔒 Cerrar
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
+                            {presupuestos.length === 0 && <tr><td colSpan={4} style={{ textAlign: 'center', padding: '20px' }}>No hay presupuestos registrados</td></tr>}
                         </tbody>
                     </table>
                 </div>

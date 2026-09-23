@@ -59,7 +59,7 @@ BEGIN
 	END IF;
 END;
 
-CREATE PROCEDURE sp_cerrar_presupuesto(
+CREATE OR REPLACE PROCEDURE sp_cerrar_presupuesto(
 IN p_id_presupuesto integer, IN p_modificado_por integer)
 LANGUAGE SQL 
 DYNAMIC RESULT SETS 1
@@ -74,7 +74,7 @@ BEGIN
 			coalesce(sum(t.monto), 0) AS monto_ejecutado_total
 	FROM presupuesto_detalle pd
 	INNER JOIN subcategoria s ON s.id_subcategoria = pd.id_subcategoria
-	LEFT JOIN transaccion t ON t.id_presupuesto = pd.id_subcategoria
+	LEFT JOIN transaccion t ON t.id_subcategoria = pd.id_subcategoria
 		AND t.id_presupuesto = pd.id_presupuesto
 	WHERE pd.id_presupuesto = p_id_presupuesto
 	GROUP BY s.nombre_subcategoria, pd.monto_mensual;

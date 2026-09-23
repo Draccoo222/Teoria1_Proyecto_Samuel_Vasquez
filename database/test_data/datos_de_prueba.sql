@@ -6,6 +6,10 @@
 INSERT INTO usuario (nombres, apellidos, correo_electronico, fecha_registro, salario_mensual_base, estado, creado_por, modificado_por)
 VALUES ('Samuel', 'Vasquez', 'samuel@email.com', '2026-06-30', 25000.00, 'activo', 1, 1);
 
+
+INSERT INTO usuario (nombres, apellidos, correo_electronico, fecha_registro, salario_mensual_base, estado, creado_por, modificado_por)
+VALUES ('Administrador', 'Sistema', 'admin@teoriadb.com', '2026-09-23', 50000.00, 'activo',1, 1);
+
 -- 2. CREAR CATEGORÍAS PRINCIPALES (IDs: 1 al 6)
 -- (El trigger creará las subcategorías "General" ocupando los IDs del 1 al 6)
 INSERT INTO categoria (nombre_categoria, descripcion, tipo_categoria, orden_presentacion, creado_por, modificado_por) VALUES
