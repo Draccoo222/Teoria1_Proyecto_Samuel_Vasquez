@@ -173,12 +173,22 @@ BEGIN
 END;
 
 CREATE OR REPLACE PROCEDURE sp_obtener_presupuesto_json(
-	IN p_id_presupuesto INTEGER,
-	OUT p_json_resultado CLOB(1M)
+	IN p_id_presupuesto INTEGER
 )
 LANGUAGE SQL
 BEGIN
 	DECLARE v_detalles CLOB(1M);
+
+	DECLARE cur1 CURSOR WITH RETURN TO CLIENT FOR
+		SELECT JSON_OBJECT(
+			KEY 'id_presupuesto' VALUE id_presupuesto,
+			KEY 'nombre' VALUE nombre_descriptivo, 
+			KEY 'total_ingresos' VALUE total_ingresos_planificados,
+			KEY 'total_gastos' VALUE total_gastos_planificados,
+			KEY 'detalles' VALUE v_detalles FORMAT JSON 
+		) AS resultado_json
+		FROM presupuesto 
+		WHERE id_presupuesto = p_id_presupuesto;
 
 	SELECT JSON_ARRAYAGG(
 		JSON_OBJECT(
@@ -192,15 +202,7 @@ BEGIN
 	INNER JOIN categoria c ON c.id_categoria = s.id_categoria
 	WHERE pd.id_presupuesto = id_presupuesto;
 			
-	SELECT JSON_OBJECT(
-		KEY 'id_presupuesto' VALUE id_presupuesto,
-		KEY 'nombre' VALUE nombre_descriptivo, 
-		KEY 'total_ingresos' VALUE total_ingresos_planificados,
-		KEY 'total_gastos' VALUE total_gastos_planificados,
-		KEY 'detalles' VALUE v_detalles FORMAT JSON 
-	) INTO p_json_resultado
-	FROM presupuesto p
-	WHERE id_presupuesto = p_id_presupuesto;
+	OPEN cur1;
 END;
 
 
