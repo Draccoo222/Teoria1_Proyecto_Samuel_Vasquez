@@ -1,11 +1,15 @@
 import express from 'express';
 import * as ibmdb from 'ibm_db';
+import cors from 'cors'
 
 const app = express();
 const port = 3000;
 
+app.use(express.json());
+
 const connStr = "DATABASE=teoriadb;HOSTNAME=localhost;UID=db2inst1;PWD=TeoriaDB2026.;PORT=50000;PROTOCOL=TCPIP";
 
+app.use(cors());
 
 // USUARIOS
 
