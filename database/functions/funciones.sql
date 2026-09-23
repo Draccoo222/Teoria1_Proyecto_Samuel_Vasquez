@@ -103,7 +103,7 @@ BEGIN
 END;
 
 
-CREATE FUNCTION fn_dias_hasta_vencimiento(
+CREATE OR REPLACE FUNCTION fn_dias_hasta_vencimiento(
 	p_id_obligacion integer
 )
 RETURNS integer
@@ -121,9 +121,7 @@ BEGIN
 	SET primer_dia = CURRENT DATE - (DAY(CURRENT DATE) - 1) DAYS;
 	SET fecha_venc = primer_dia + (calc_dia - 1) DAYS;
 	
-	IF fecha_venc < CURRENT DATE THEN
-		SET fecha_venc = fecha_venc + 1 MONTH;
-	END IF; 
+	
 	
 	RETURN DAYS(fecha_venc) - DAYS(CURRENT DATE);
 END;

@@ -380,7 +380,7 @@ app.delete('/api/transacciones/:id', async (req, res) => {
 
 // Alertas
 
-app.get('./api/alertas', async(req, res) =>{
+app.get('/api/alertas', async(req, res) =>{
     const{id_usuario, anio, mes, id_presupuesto} = req.query
 
     try{

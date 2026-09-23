@@ -92,7 +92,7 @@ function App() {
                   </div>
 
                 {/* 3. Botón de Salir (DERECHA) */}
-                <button onClick={() => setUsuario(null)} style={{ background: '#c0392b', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                <button onClick={() => {setUsuario(null); setVistaActual('dashboard');}} style={{ background: '#c0392b', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
                     Salir
                 </button>
             </div>
