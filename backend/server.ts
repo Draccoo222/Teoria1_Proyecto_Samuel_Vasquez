@@ -26,7 +26,7 @@ app.get('/api/usuarios', async (req, res) => {
 app.get('/api/usuarios/:id', async(req, res) => {
     try {
         const conn = await ibmdb.open(connStr);
-        const data = await conn.query('CALL sp_consultar_usuario(${req.params.id})');
+        const data = await conn.query(`CALL sp_consultar_usuario(${req.params.id})`);
         await conn.close();
         res.status(200).json(data);
     } catch (e: any) {res.status(500).json({ error: e.message });
@@ -196,9 +196,15 @@ app.get('/api/presupuestos/:id', async (req, res) => {
 app.get('/api/presupuestos/:id/json', async (req, res) => {
     try {
         const conn = await ibmdb.open(connStr);
-        const data = await conn.query(`CALL sp_obtener_presupuesto_json(${req.params.id}, ?)`);
+        const data = await conn.query(`CALL sp_obtener_presupuesto_json(${req.params.id}, ?)`, [null]);
         await conn.close();
-        res.status(200).json(JSON.parse(data[0]));
+
+        let resultadoStr = Array.isArray(data) ? data[0] : data;
+        if (typeof resultadoStr === 'object' && resultadoStr !== null) {
+            resultadoStr = Object.values(resultadoStr)[0];
+        }
+
+        res.status(200).json(JSON.parse(String(resultadoStr)));
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
