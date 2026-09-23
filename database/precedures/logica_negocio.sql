@@ -203,7 +203,5 @@ BEGIN
 	WHERE id_presupuesto = p_id_presupuesto;
 END;
 
-CALL sp_obtener_presupuesto_json(1, ?);
-
 
 
