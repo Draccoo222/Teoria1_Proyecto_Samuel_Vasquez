@@ -48,14 +48,25 @@ app.get('/api/usuarios/:id', async(req, res) => {
 });
 
 app.post('/api/usuarios', async (req, res) => {
-    const { nombres, apellidos, correo_electronico, salario_mensual_base, creado_por } = req.body;
+    const {primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, correo_electronico, salario_mensual_base, creado_por } = req.body;
     try {
         const conn = await ibmdb.open(connStr);
-        const query = `CALL sp_insertar_usuario(?, ?, ?, ?, ?, ?)`;
-        const result = await conn.query(query, [nombres, apellidos, correo_electronico, salario_mensual_base, creado_por, null]);
+        const query = `CALL sp_insertar_usuario(?, ?, ?, ?, ?, ?, ?, ?)`;
+        const result = await conn.query(query, [
+                primer_nombre, 
+                segundo_nombre || null, 
+                primer_apellido, 
+                segundo_apellido || null, 
+                correo_electronico, 
+                salario_mensual_base, 
+                creado_por,
+                { ParamType: "OUT", DataType: 4, Data: 0 }
+            ]);
         await conn.close();
-        res.status(201).json({ mensaje: "Usuario creado", id: result[0] });
-    } catch (e: any) { res.status(500).json({ error: e.message }); }
+        res.status(201).json({ mensaje: "Usuario creado exitosamente", id_generado: result });
+    } catch (e: any) { console.error("ERROR DB2:", e); 
+      
+        res.status(500).json({ error: e.message || e.toString() }); }
 });
 
 app.put('/api/usuarios/:id', async (req, res) => {

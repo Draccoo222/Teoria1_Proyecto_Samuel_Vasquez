@@ -158,5 +158,11 @@ ALTER TABLE presupuesto_detalle
 	ADD CONSTRAINT uq_presupuesto_subcategoria UNIQUE (id_presupuesto, id_subcategoria); 
 
 
+ALTER TABLE usuario RENAME COLUMN nombres TO primer_nombre;
+ALTER TABLE usuario RENAME COLUMN apellidos TO primer_apellido;
+
+ALTER TABLE usuario ADD COLUMN segundo_nombre VARCHAR(50);
+ALTER TABLE usuario ADD COLUMN segundo_apellido VARCHAR(50);
+
 
 
