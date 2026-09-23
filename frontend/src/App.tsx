@@ -52,81 +52,64 @@ function App() {
     return acc;
   }, []) : [];
 
-  return (
-    <div style={{ padding: '30px', fontFamily: 'system-ui', maxWidth: '1000px', margin: '0 auto' }}>
-      
-      {/* BARRA DE NAVEGACIÓN SUPERIOR */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#343a40', color: 'white', padding: '15px 25px', borderRadius: '10px', marginBottom: '20px' }}>
-        <div>
-           <strong>Usuario:</strong> {usuario.NOMBRES} {usuario.APELLIDOS} <br/>
-           <span style={{ fontSize: '12px', background: usuario.ROL === 'ADMIN' ? '#dc3545' : '#28a745', padding: '3px 8px', borderRadius: '10px', marginTop: '5px', display: 'inline-block' }}>
-             Rol: {usuario.ROL}
-           </span>
-        </div>
-        
-        <div style={{ display: 'flex', gap: '10px' }}>
-            <button 
-                onClick={() => setVistaActual('dashboard')}
-                style={{ background: vistaActual === 'dashboard' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}
-            >
-                Dashboard
-            </button>
+ return (
+        <div style={{ fontFamily: 'Arial, sans-serif', background: '#e9ecef', minHeight: '100vh', padding: '20px' }}>
             
-            {usuario.ROL === 'ADMIN' && (
-            <>
-                <button onClick={() => setVistaActual('categorias')} style={{ background: vistaActual === 'categorias' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Categorías</button>
-                <button onClick={() => setVistaActual('subcategorias')} style={{ background: vistaActual === 'subcategorias' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Subcategorías</button>
-                <button onClick={() => setVistaActual('presupuestos')} style={{ background: vistaActual === 'presupuestos' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Presupuestos</button>
-                <button onClick={() => setVistaActual('detalles')} style={{ background: vistaActual === 'detalles' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Detalles Pres.</button>
-                <button onClick={() => setVistaActual('obligaciones')} style={{ background: vistaActual === 'obligaciones' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Obligaciones</button>
-            </>
-           )}
+            {/* =========================================================================
+                BARRA DE NAVEGACIÓN SUPERIOR (LA CAJA OSCURA)
+               ========================================================================= */}
+            <div style={{ background: '#212529', color: 'white', padding: '20px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                
+                {/* 1. Información del Usuario (IZQUIERDA) */}
+                <div>
+                    <h3 style={{ margin: 0, fontSize: '14px', color: '#ccc' }}>Usuario:</h3>
+                    <p style={{ margin: '5px 0' }}>{usuario.NOMBRES}</p>
+                    <span style={{ background: usuario.ROL === 'ADMIN' ? '#dc3545' : '#28a745', padding: '3px 8px', borderRadius: '4px', fontSize: '12px' }}>
+                        Rol: {usuario.ROL}
+                    </span>
+                </div>
 
-            {/* AQUÍ VA EL BOTÓN NUEVO */}
-            <button 
-                onClick={() => setVistaActual('transacciones')}
-                style={{ background: vistaActual === 'transacciones' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}
-            >
-                Transacciones
-            </button>
+                {/* 2. AQUÍ PEGAS EL NUEVO CÓDIGO DE LOS BOTONES (CENTRO) */}
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    
+                    {/* 🟢 BOTONES PARA TODOS (Administrador y Usuario Normal) */}
+                    <button onClick={() => setVistaActual('dashboard')} style={{ background: vistaActual === 'dashboard' ? '#007bff' : '#495057', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Dashboard</button>
+                    <button onClick={() => setVistaActual('presupuestos')} style={{ background: vistaActual === 'presupuestos' ? '#007bff' : '#495057', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Presupuestos</button>
+                    <button onClick={() => setVistaActual('detalles')} style={{ background: vistaActual === 'detalles' ? '#007bff' : '#495057', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Detalles Pres.</button>
+                    <button onClick={() => setVistaActual('obligaciones')} style={{ background: vistaActual === 'obligaciones' ? '#007bff' : '#495057', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Obligaciones</button>
+                    <button onClick={() => setVistaActual('transacciones')} style={{ background: vistaActual === 'transacciones' ? '#007bff' : '#495057', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Transacciones</button>
 
-            <button 
-                onClick={() => { setUsuario(null); setVistaActual('dashboard'); }} 
-                style={{ background: '#dc3545', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}
-            >
-                Salir
-            </button>
+                    {/* 🔴 BOTONES EXCLUSIVOS DEL ADMINISTRADOR (Catálogos Globales) */}
+                    {usuario.ROL === 'ADMIN' && (
+                        <>
+                            <div style={{ borderLeft: '2px solid #555', margin: '0 5px' }}></div>
+                            <button onClick={() => setVistaActual('categorias')} style={{ background: vistaActual === 'categorias' ? '#007bff' : '#343a40', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Categorías</button>
+                            <button onClick={() => setVistaActual('subcategorias')} style={{ background: vistaActual === 'subcategorias' ? '#007bff' : '#343a40', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Subcategorías</button>
+                        </>
+                    )}
+                </div>
+
+                {/* 3. Botón de Salir (DERECHA) */}
+                <button onClick={() => setUsuario(null)} style={{ background: '#c0392b', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    Salir
+                </button>
+            </div>
+
+            {/* =========================================================================
+                RENDERIZADO DE LAS PANTALLAS
+               ========================================================================= */}
+            <div>
+                {vistaActual === 'dashboard' && <Dashboard usuario={usuario} />}
+                {vistaActual === 'obligaciones' && <Obligaciones usuario={usuario} />}
+                {vistaActual === 'transacciones' && <Transacciones usuario={usuario} />}
+                {vistaActual === 'subcategorias' && <Subcategorias usuario={usuario} />}
+                {vistaActual === 'categorias' && <Categorias usuario={usuario} />}
+                {vistaActual === 'presupuestos' && <Presupuestos usuario={usuario} />}
+                {vistaActual === 'detalles' && <Detalles usuario={usuario} />}
+            </div>
+
         </div>
-      </div>
-
- {/* RENDERIZADO CONDICIONAL DE PANTALLAS */}
-      
-      {vistaActual === 'dashboard' && (
-          <>
-            <h1 style={{ textAlign: 'center', color: '#2c3e50', marginBottom: '40px' }}>📊 Dashboard Analítico</h1>
-            
-            {!datosValidos ? (
-                <h2 style={{ textAlign: 'center', color: 'red' }}>⚠️ Error en la estructura del JSON del presupuesto.</h2>
-            ) : (
-                <>
-                    {/* ... (Deja aquí adentro TODO tu código de las tarjetas y el PieChart) ... */}
-                </>
-            )}
-          </>
-      )}
-
-      {vistaActual === 'categorias' && <Categorias usuario={usuario} />}
-      
-      {/* AQUÍ CARGA LA NUEVA PANTALLA */}
-      {vistaActual === 'obligaciones' && <Obligaciones usuario={usuario} />}
-      {vistaActual === 'transacciones' && <Transacciones usuario={usuario} />}
-      {vistaActual === 'subcategorias' && <Subcategorias usuario={usuario} />}
-      {vistaActual === 'presupuestos' && <Presupuestos usuario={usuario} />}
-      {vistaActual === 'detalles' && <Detalles usuario={usuario} />}
-      {vistaActual === 'dashboard' && <Dashboard usuario={usuario} />}
-
-    </div>
-  );
+    );
 }
 
 export default App;

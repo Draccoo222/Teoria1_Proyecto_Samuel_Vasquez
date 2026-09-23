@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-// Importamos la librería para el PDF
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import html2pdf from 'html2pdf.js';
 
 export default function Dashboard({ usuario }: { usuario: any }) {
     const [presupuestos, setPresupuestos] = useState<any[]>([]);
-    const [alertas, setAlertas] = useState<any[]>([]);
     const [idPresupuestoSel, setIdPresupuestoSel] = useState<string>('');
     const [datosJSON, setDatosJSON] = useState<any>(null);
+    const [alertas, setAlertas] = useState<any[]>([]);
 
     const COLORES = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8e44ad', '#e74c3c', '#2c3e50'];
 
@@ -23,15 +22,16 @@ export default function Dashboard({ usuario }: { usuario: any }) {
 
     useEffect(() => {
         if (!idPresupuestoSel) return;
-
+        
         const presupuestoActual = presupuestos.find(p => p.ID_PRESUPUESTO.toString() === idPresupuestoSel);
-       // 1. Traer datos financieros
+        
+        // 1. Datos financieros
         fetch(`http://localhost:3000/api/presupuestos/${idPresupuestoSel}/json`)
             .then(res => res.json())
             .then(data => setDatosJSON(data))
             .catch(err => console.error(err));
             
-        // 2. Traer panel de alertas inteligentes
+        // 2. Alertas
         if(presupuestoActual) {
             fetch(`http://localhost:3000/api/alertas?id_usuario=${usuario.ID_USUARIO}&anio=${presupuestoActual.ANIO_INICIO}&mes=${presupuestoActual.MES_INICIO}&id_presupuesto=${idPresupuestoSel}`)
                 .then(res => res.json())
@@ -40,17 +40,16 @@ export default function Dashboard({ usuario }: { usuario: any }) {
         }
     }, [idPresupuestoSel, presupuestos, usuario.ID_USUARIO]);
 
-    // Función que toma el HTML renderizado por React y lo convierte en PDF
     const generarPDF = () => {
         const elemento = document.getElementById('reporte-pdf');
         const opciones = {
             margin:       10,
-            filename:     `Reporte_Presupuestal_ID_${idPresupuestoSel}.pdf`,
+            filename:     `Reporte_Presupuestal_${idPresupuestoSel}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
-        // @ts-ignore - Ignoramos el tipado estricto de TS para esta librería
+        // @ts-ignore
         html2pdf().set(opciones).from(elemento).save();
     };
 
@@ -72,57 +71,44 @@ export default function Dashboard({ usuario }: { usuario: any }) {
     const gastosTotales = parseFloat(datosJSON.total_gastos || 0);
     const balance = ingresosTotales - gastosTotales;
 
-  return (
+    return (
         <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '10px' }}>
             
-            {/* Cabecera con el botón de PDF */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <h2 style={{ color: '#2c3e50', margin: 0 }}>📊 Dashboard Analítico</h2>
-                    <button 
-                        onClick={generarPDF}
-                        style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
-                    >
+                    <button onClick={generarPDF} style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
                         📄 Exportar a PDF
                     </button>
                 </div>
-                <select 
-                    value={idPresupuestoSel} 
-                    onChange={(e) => setIdPresupuestoSel(e.target.value)}
-                    style={{ padding: '10px', borderRadius: '8px', border: '1px solid #ccc', fontWeight: 'bold' }}
-                >
-                    {presupuestos.map(p => (
-                        <option key={p.ID_PRESUPUESTO} value={p.ID_PRESUPUESTO}>
-                            Visualizando: {p.NOMBRE_DESCRIPTIVO}
-                        </option>
-                    ))}
+                <select value={idPresupuestoSel} onChange={(e) => setIdPresupuestoSel(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #ccc', fontWeight: 'bold' }}>
+                    {presupuestos.map(p => <option key={p.ID_PRESUPUESTO} value={p.ID_PRESUPUESTO}>Visualizando: {p.NOMBRE_DESCRIPTIVO}</option>)}
                 </select>
             </div>
 
-            {/* Contenedor del PDF */}
+            {/* Todo lo que está dentro de este div saldrá en el PDF */}
             <div id="reporte-pdf" style={{ padding: '10px', background: '#f8f9fa' }}>
                 
-                {/* 1. Tarjetas de Resumen (KPIs) */}
-                <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', borderLeft: '5px solid #28a745' }}>
+                {/* 1. KPIs */}
+                <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, background: 'white', padding: '20px', borderRadius: '10px', borderLeft: '5px solid #28a745' }}>
                         <p style={{ margin: 0, color: '#666', fontWeight: 'bold' }}>Ingresos Planificados</p>
                         <h2 style={{ margin: '10px 0 0 0', color: '#28a745' }}>L. {ingresosTotales.toFixed(2)}</h2>
                     </div>
-                    <div style={{ flex: 1, background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', borderLeft: '5px solid #dc3545' }}>
+                    <div style={{ flex: 1, background: 'white', padding: '20px', borderRadius: '10px', borderLeft: '5px solid #dc3545' }}>
                         <p style={{ margin: 0, color: '#666', fontWeight: 'bold' }}>Gastos Planificados</p>
                         <h2 style={{ margin: '10px 0 0 0', color: '#dc3545' }}>L. {gastosTotales.toFixed(2)}</h2>
                     </div>
-                    <div style={{ flex: 1, background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', borderLeft: `5px solid ${balance >= 0 ? '#007bff' : '#e74c3c'}` }}>
+                    <div style={{ flex: 1, background: 'white', padding: '20px', borderRadius: '10px', borderLeft: `5px solid ${balance >= 0 ? '#007bff' : '#e74c3c'}` }}>
                         <p style={{ margin: 0, color: '#666', fontWeight: 'bold' }}>Balance Proyectado</p>
                         <h2 style={{ margin: '10px 0 0 0', color: balance >= 0 ? '#007bff' : '#e74c3c' }}>L. {balance.toFixed(2)}</h2>
                     </div>
                 </div>
 
-                {/* 2. Zona de Gráficos y Tablas */}
-                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                    
-                    {/* A. Gráfico de Pastel */}
-                    <div style={{ flex: 1, minWidth: '300px', background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                {/* 2. Fila de Gráficos (Pastel + Barras) */}
+                <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                    {/* Gráfico de Pastel */}
+                    <div style={{ flex: 1, minWidth: '400px', background: 'white', padding: '20px', borderRadius: '10px' }}>
                         <h3 style={{ textAlign: 'center', color: '#333' }}>Distribución por Categoría</h3>
                         {datosPastel.length === 0 ? (
                             <p style={{ textAlign: 'center', color: '#999', marginTop: '50px' }}>No hay detalles asignados.</p>
@@ -131,9 +117,7 @@ export default function Dashboard({ usuario }: { usuario: any }) {
                                 <ResponsiveContainer>
                                     <PieChart>
                                         <Pie data={datosPastel} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value" label>
-                                            {datosPastel.map((entry: any, index: number) => (
-                                                <Cell key={`cell-${index}`} fill={COLORES[index % COLORES.length]} />
-                                            ))}
+                                            {datosPastel.map((entry: any, index: number) => <Cell key={`cell-${index}`} fill={COLORES[index % COLORES.length]} />)}
                                         </Pie>
                                         <Tooltip formatter={(value: number) => `L. ${value.toFixed(2)}`} />
                                         <Legend />
@@ -143,8 +127,33 @@ export default function Dashboard({ usuario }: { usuario: any }) {
                         )}
                     </div>
 
-                    {/* B. Tabla Rápida de Detalles */}
-                    <div style={{ flex: 1, minWidth: '300px', background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', maxHeight: '350px', overflowY: 'auto' }}>
+                    {/* Gráfico Comparativo */}
+                    <div style={{ flex: 1, minWidth: '400px', background: 'white', padding: '20px', borderRadius: '10px' }}>
+                        <h3 style={{ textAlign: 'center', color: '#333' }}>Ejecución vs Presupuesto</h3>
+                        {datosJSON.detalles ? (
+                            <div style={{ width: '100%', height: 250 }}>
+                                <ResponsiveContainer>
+                                    <BarChart data={datosJSON.detalles} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="subcategoria" tick={{fontSize: 12}} />
+                                        <YAxis />
+                                        <Tooltip formatter={(value: number) => `L. ${value.toFixed(2)}`} />
+                                        <Legend />
+                                        <Bar dataKey="monto_asignado" name="Planificado" fill="#0088FE" />
+                                        <Bar dataKey="monto_ejecutado" name="Gasto Real" fill="#e74c3c" />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        ) : (
+                            <p style={{ textAlign: 'center', color: '#999', marginTop: '50px' }}>Sin datos comparativos.</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* 3. Fila de Tablas y Alertas */}
+                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                    {/* Tabla */}
+                    <div style={{ flex: 1, minWidth: '400px', background: 'white', padding: '20px', borderRadius: '10px', maxHeight: '350px', overflowY: 'auto' }}>
                         <h3 style={{ textAlign: 'center', color: '#333' }}>Desglose de Asignaciones</h3>
                         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
                             <thead>
@@ -166,8 +175,8 @@ export default function Dashboard({ usuario }: { usuario: any }) {
                         </table>
                     </div>
 
-                    {/* C. AQUÍ VA EL PANEL DE ALERTAS */}
-                    <div style={{ flex: 1, minWidth: '300px', background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                    {/* Alertas */}
+                    <div style={{ flex: 1, minWidth: '400px', background: 'white', padding: '20px', borderRadius: '10px', maxHeight: '350px', overflowY: 'auto' }}>
                         <h3 style={{ textAlign: 'center', color: '#333' }}>🔔 Alertas de Obligaciones</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
                             {alertas.length === 0 ? (
@@ -194,8 +203,8 @@ export default function Dashboard({ usuario }: { usuario: any }) {
                             )}
                         </div>
                     </div>
-
                 </div>
+
             </div>
         </div>
     );
