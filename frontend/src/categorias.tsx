@@ -4,6 +4,7 @@ export default function Categorias({ usuario }: { usuario: any }) {
     const [categorias, setCategorias] = useState<any[]>([]);
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
+    
     const [tipo, setTipo] = useState('gasto'); // Por defecto
 
     // Función para cargar las categorías desde Db2

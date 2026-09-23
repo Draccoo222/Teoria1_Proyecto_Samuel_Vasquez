@@ -7,7 +7,7 @@ const port = 3000;
 
 app.use(express.json());
 
-const connStr = "DATABASE=teoriadb;HOSTNAME=localhost;UID=db2inst1;PWD=TeoriaDB2026.;PORT=50000;PROTOCOL=TCPIP";
+const connStr = "DATABASE=teoriadb;HOSTNAME=localhost;UID=db2inst1;PWD=TeoriaDB2026.;PORT=50000;PROTOCOL=TCPIP;CCSID=1208";
 
 app.use(cors());
 
@@ -18,18 +18,14 @@ app.post('/api/login', async (req, res) => {
         const conn = await ibmdb.open(connStr);
         const data = await conn.query(`CALL sp_listar_usuarios()`);
         await conn.close();
-
         const usuario = data.find((u: any) => u.CORREO_ELECTRONICO === correo);
-
         if (usuario) {
             usuario.ROL = usuario.CORREO_ELECTRONICO === 'admin@teoriadb.com' ? 'ADMIN' : 'USER';
             res.status(200).json(usuario);
         } else {
             res.status(401).json({ error: "Correo no encontrado en el sistema." });
         }
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
-    }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
 // USUARIOS
@@ -88,7 +84,7 @@ app.get('/api/categorias', async (req, res) => {
     const { tipo } = req.query;
     try {
         const conn = await ibmdb.open(connStr);
-        await conn.query(`CALL sp_listar_categorias(?)`, [tipo || null]);
+        const data = await conn.query(`CALL sp_listar_categorias(?)`, [tipo || null]);
         await conn.close();
         res.status(200).json(data);
     } catch (e: any) { res.status(500).json({ error: e.message }); }
@@ -107,10 +103,10 @@ app.post('/api/categorias', async (req, res) => {
     const { nombre_categoria, descripcion, tipo_categoria, nombre_icono, color_hex, orden_presentacion, creado_por } = req.body;
     try {
         const conn = await ibmdb.open(connStr);
-        const query = `CALL sp_insertar_categoria(?, ?, ?, ?, ?, ?, ?)`;
-        await conn.query(query, [nombre_categoria, descripcion, tipo_categoria, nombre_icono, color_hex, orden_presentacion, creado_por]);
+        const query = `CALL sp_insertar_categoria(?, ?, ?, ?, ?, ?, ?, ?)`;
+        const result = await conn.query(query, [nombre_categoria, descripcion, tipo_categoria, nombre_icono, color_hex, orden_presentacion, creado_por, null]);
         await conn.close();
-        res.status(201).json({ mensaje: "Categoría creada con éxito" });
+        res.status(201).json({ mensaje: "Categoría creada con éxito", id: result[0] });
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
@@ -258,15 +254,6 @@ app.get('/api/presupuestos/:id_presupuesto/detalles', async (req, res) => {
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.get('/api/detalles/:id', async (req, res) => {
-    try {
-        const conn = await ibmdb.open(connStr);
-        const data = await conn.query(`CALL sp_consultar_presupuesto_detalle(?)`, [req.params.id]);
-        await conn.close();
-        res.status(200).json(data);
-    } catch (e: any) { res.status(500).json({ error: e.message }); }
-});
-
 app.post('/api/detalles', async (req, res) => {
     const { id_presupuesto, id_subcategoria, monto_mensual, observaciones, creado_por } = req.body;
     try {
@@ -295,16 +282,7 @@ app.get('/api/obligaciones', async (req, res) => {
     if(!id_usuario) return res.status(400).json({error: "Se requiere id_usuario en la query string"});
     try {
         const conn = await ibmdb.open(connStr);
-        await conn.query(`CALL sp_listar_obligaciones_usuario(?, ?)`, [id_usuario, esta_vigente !== undefined ? esta_vigente : null]);
-        await conn.close();
-        res.status(200).json(data);
-    } catch (e: any) { res.status(500).json({ error: e.message }); }
-});
-
-app.get('/api/obligaciones/:id', async (req, res) => {
-    try {
-        const conn = await ibmdb.open(connStr);
-        const data = await conn.query(`CALL sp_consultar_obligacion(?)`, [req.params.id]);
+        const data = await conn.query(`CALL sp_listar_obligaciones_usuario(?, ?)`, [id_usuario, esta_vigente !== undefined ? esta_vigente : null]);
         await conn.close();
         res.status(200).json(data);
     } catch (e: any) { res.status(500).json({ error: e.message }); }
@@ -354,15 +332,6 @@ app.get('/api/transacciones', async (req, res) => {
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.get('/api/transacciones/:id', async (req, res) => {
-    try {
-        const conn = await ibmdb.open(connStr);
-        const data = await conn.query(`CALL sp_calcular_transaccion(?)`, [req.params.id]); 
-        await conn.close();
-        res.status(200).json(data);
-    } catch (e: any) { res.status(500).json({ error: e.message }); }
-});
-
 app.post('/api/transacciones', async (req, res) => {
     const { id_usuario, id_presupuesto, anio, mes, id_subcategoria, tipo, descripcion, monto, fecha, metodo_pago, creado_por } = req.body;
     try {
@@ -370,8 +339,7 @@ app.post('/api/transacciones', async (req, res) => {
         const query = `CALL sp_registrar_transaccion_completa(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         await conn.query(query, [
             id_usuario, id_presupuesto, anio, mes, id_subcategoria, 
-            tipo, descripcion, monto, fecha, metodo_pago, creado_por, 
-            null, null
+            tipo, descripcion, monto, fecha, metodo_pago, creado_por, null, null
         ]);
         await conn.close();
         res.status(201).json({ mensaje: "Transacción registrada de forma segura" });
@@ -400,4 +368,4 @@ app.delete('/api/transacciones/:id', async (req, res) => {
 
 app.listen(port, () => {
     console.log(`listo en http://localhost:${port}`);
-})
+});

@@ -3,12 +3,15 @@ import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import Login from './login';
 import Categorias from './Categorias'; // Importamos tu nueva pantalla
 import Transacciones from './Transacciones';
+import Subcategorias from './Subcategorias';
+import Presupuestos from './Presupuestos';
+import Detalles from './Detalles';
 
 const COLORES = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#ffc658'];
 
 function App() {
   const [usuario, setUsuario] = useState<any>(null);
-  const [vistaActual, setVistaActual] = useState<'dashboard' | 'categorias' | 'transacciones'>('dashboard');
+  const [vistaActual, setVistaActual] = useState<'dashboard' | 'categorias' | 'subcategorias' | 'presupuestos' | 'detalles' | 'transacciones'>('dashboard');
   
   const [presupuesto, setPresupuesto] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
@@ -68,13 +71,13 @@ function App() {
             </button>
             
             {usuario.ROL === 'ADMIN' && (
-                <button 
-                    onClick={() => setVistaActual('categorias')}
-                    style={{ background: vistaActual === 'categorias' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}
-                >
-                    Categorías
-                </button>
-            )}
+            <>
+                <button onClick={() => setVistaActual('categorias')} style={{ background: vistaActual === 'categorias' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Categorías</button>
+                <button onClick={() => setVistaActual('subcategorias')} style={{ background: vistaActual === 'subcategorias' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Subcategorías</button>
+                <button onClick={() => setVistaActual('presupuestos')} style={{ background: vistaActual === 'presupuestos' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Presupuestos</button>
+                <button onClick={() => setVistaActual('detalles')} style={{ background: vistaActual === 'detalles' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Detalles Pres.</button>
+            </>
+           )}
 
             {/* AQUÍ VA EL BOTÓN NUEVO */}
             <button 
@@ -113,6 +116,9 @@ function App() {
       
       {/* AQUÍ CARGA LA NUEVA PANTALLA */}
       {vistaActual === 'transacciones' && <Transacciones usuario={usuario} />}
+      {vistaActual === 'subcategorias' && <Subcategorias usuario={usuario} />}
+      {vistaActual === 'presupuestos' && <Presupuestos usuario={usuario} />}
+      {vistaActual === 'detalles' && <Detalles usuario={usuario} />}
 
     </div>
   );
