@@ -6,12 +6,14 @@ import Transacciones from './Transacciones';
 import Subcategorias from './Subcategorias';
 import Presupuestos from './Presupuestos';
 import Detalles from './Detalles';
+import Obligaciones from './Obligaciones';
+import Dashboard from './Dashboard';
 
 const COLORES = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#ffc658'];
 
 function App() {
   const [usuario, setUsuario] = useState<any>(null);
-  const [vistaActual, setVistaActual] = useState<'dashboard' | 'categorias' | 'subcategorias' | 'presupuestos' | 'detalles' | 'transacciones'>('dashboard');
+  const [vistaActual, setVistaActual] = useState<'dashboard' | 'categorias' | 'subcategorias' | 'presupuestos' | 'detalles' | 'obligaciones' |'transacciones'>('dashboard');
   
   const [presupuesto, setPresupuesto] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
@@ -76,6 +78,7 @@ function App() {
                 <button onClick={() => setVistaActual('subcategorias')} style={{ background: vistaActual === 'subcategorias' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Subcategorías</button>
                 <button onClick={() => setVistaActual('presupuestos')} style={{ background: vistaActual === 'presupuestos' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Presupuestos</button>
                 <button onClick={() => setVistaActual('detalles')} style={{ background: vistaActual === 'detalles' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Detalles Pres.</button>
+                <button onClick={() => setVistaActual('obligaciones')} style={{ background: vistaActual === 'obligaciones' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>Obligaciones</button>
             </>
            )}
 
@@ -115,10 +118,12 @@ function App() {
       {vistaActual === 'categorias' && <Categorias usuario={usuario} />}
       
       {/* AQUÍ CARGA LA NUEVA PANTALLA */}
+      {vistaActual === 'obligaciones' && <Obligaciones usuario={usuario} />}
       {vistaActual === 'transacciones' && <Transacciones usuario={usuario} />}
       {vistaActual === 'subcategorias' && <Subcategorias usuario={usuario} />}
       {vistaActual === 'presupuestos' && <Presupuestos usuario={usuario} />}
       {vistaActual === 'detalles' && <Detalles usuario={usuario} />}
+      {vistaActual === 'dashboard' && <Dashboard usuario={usuario} />}
 
     </div>
   );

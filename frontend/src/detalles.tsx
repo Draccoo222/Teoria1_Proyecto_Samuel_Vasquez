@@ -22,6 +22,7 @@ export default function Detalles({ usuario }: { usuario: any }) {
             .then(res => res.json())
             .then(data => {
                 setPresupuestos(data);
+                // Aseguramos que sea string para que haga match con el select
                 if (data.length > 0) setIdPresupuesto(data[0].ID_PRESUPUESTO.toString());
             });
 
@@ -139,7 +140,7 @@ export default function Detalles({ usuario }: { usuario: any }) {
                             <input type="text" value={observaciones} onChange={(e) => setObservaciones(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
                         </div>
 
-                        <button type="submit" disabled={!idSubcategoria} style={{ background: '#0056b3', color: 'white', border: 'none', padding: '12px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
+                        <button type="submit" disabled={!idSubcategoria || !idPresupuesto} style={{ background: '#0056b3', color: 'white', border: 'none', padding: '12px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
                             Agregar al Presupuesto
                         </button>
                     </form>
