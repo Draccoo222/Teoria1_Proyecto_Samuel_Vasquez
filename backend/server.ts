@@ -367,10 +367,11 @@ app.post('/api/transacciones', async (req, res) => {
     const { id_usuario, id_presupuesto, anio, mes, id_subcategoria, tipo, descripcion, monto, fecha, metodo_pago, creado_por } = req.body;
     try {
         const conn = await ibmdb.open(connStr);
-        const query = `CALL sp_registrar_transaccion_completa(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const query = `CALL sp_registrar_transaccion_completa(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         await conn.query(query, [
             id_usuario, id_presupuesto, anio, mes, id_subcategoria, 
-            tipo, descripcion, monto, fecha, metodo_pago, creado_por
+            tipo, descripcion, monto, fecha, metodo_pago, creado_por, 
+            null, null
         ]);
         await conn.close();
         res.status(201).json({ mensaje: "Transacción registrada de forma segura" });
