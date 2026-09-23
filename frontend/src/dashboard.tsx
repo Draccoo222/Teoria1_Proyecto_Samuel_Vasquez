@@ -5,6 +5,7 @@ import html2pdf from 'html2pdf.js';
 
 export default function Dashboard({ usuario }: { usuario: any }) {
     const [presupuestos, setPresupuestos] = useState<any[]>([]);
+    const [alertas, setAlertas] = useState<any[]>([]);
     const [idPresupuestoSel, setIdPresupuestoSel] = useState<string>('');
     const [datosJSON, setDatosJSON] = useState<any>(null);
 
@@ -22,11 +23,22 @@ export default function Dashboard({ usuario }: { usuario: any }) {
 
     useEffect(() => {
         if (!idPresupuestoSel) return;
+
+        const presupuestoActual = presupuestos.find(p => p.ID_PRESUPUESTO.toString() === idPresupuestoSel);
+       // 1. Traer datos financieros
         fetch(`http://localhost:3000/api/presupuestos/${idPresupuestoSel}/json`)
             .then(res => res.json())
             .then(data => setDatosJSON(data))
             .catch(err => console.error(err));
-    }, [idPresupuestoSel]);
+            
+        // 2. Traer panel de alertas inteligentes
+        if(presupuestoActual) {
+            fetch(`http://localhost:3000/api/alertas?id_usuario=${usuario.ID_USUARIO}&anio=${presupuestoActual.ANIO_INICIO}&mes=${presupuestoActual.MES_INICIO}&id_presupuesto=${idPresupuestoSel}`)
+                .then(res => res.json())
+                .then(data => setAlertas(data))
+                .catch(err => console.error(err));
+        }
+    }, [idPresupuestoSel, presupuestos, usuario.ID_USUARIO]);
 
     // Función que toma el HTML renderizado por React y lo convierte en PDF
     const generarPDF = () => {
@@ -60,7 +72,7 @@ export default function Dashboard({ usuario }: { usuario: any }) {
     const gastosTotales = parseFloat(datosJSON.total_gastos || 0);
     const balance = ingresosTotales - gastosTotales;
 
-    return (
+  return (
         <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '10px' }}>
             
             {/* Cabecera con el botón de PDF */}
@@ -87,8 +99,10 @@ export default function Dashboard({ usuario }: { usuario: any }) {
                 </select>
             </div>
 
-            {/* Este es el contenedor exacto que será convertido a PDF */}
+            {/* Contenedor del PDF */}
             <div id="reporte-pdf" style={{ padding: '10px', background: '#f8f9fa' }}>
+                
+                {/* 1. Tarjetas de Resumen (KPIs) */}
                 <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', borderLeft: '5px solid #28a745' }}>
                         <p style={{ margin: 0, color: '#666', fontWeight: 'bold' }}>Ingresos Planificados</p>
@@ -104,16 +118,19 @@ export default function Dashboard({ usuario }: { usuario: any }) {
                     </div>
                 </div>
 
+                {/* 2. Zona de Gráficos y Tablas */}
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: '400px', background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                    
+                    {/* A. Gráfico de Pastel */}
+                    <div style={{ flex: 1, minWidth: '300px', background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
                         <h3 style={{ textAlign: 'center', color: '#333' }}>Distribución por Categoría</h3>
                         {datosPastel.length === 0 ? (
-                            <p style={{ textAlign: 'center', color: '#999', marginTop: '50px' }}>No hay detalles asignados a este presupuesto.</p>
+                            <p style={{ textAlign: 'center', color: '#999', marginTop: '50px' }}>No hay detalles asignados.</p>
                         ) : (
-                            <div style={{ width: '100%', height: 300 }}>
+                            <div style={{ width: '100%', height: 250 }}>
                                 <ResponsiveContainer>
                                     <PieChart>
-                                        <Pie data={datosPastel} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value" label>
+                                        <Pie data={datosPastel} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value" label>
                                             {datosPastel.map((entry: any, index: number) => (
                                                 <Cell key={`cell-${index}`} fill={COLORES[index % COLORES.length]} />
                                             ))}
@@ -126,13 +143,14 @@ export default function Dashboard({ usuario }: { usuario: any }) {
                         )}
                     </div>
 
-                    <div style={{ flex: 1, minWidth: '400px', background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                    {/* B. Tabla Rápida de Detalles */}
+                    <div style={{ flex: 1, minWidth: '300px', background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', maxHeight: '350px', overflowY: 'auto' }}>
                         <h3 style={{ textAlign: 'center', color: '#333' }}>Desglose de Asignaciones</h3>
                         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
                             <thead>
                                 <tr style={{ background: '#f4f6f8' }}>
                                     <th style={{ padding: '10px', textAlign: 'left' }}>Subcategoría</th>
-                                    <th style={{ padding: '10px', textAlign: 'right' }}>Monto Asignado</th>
+                                    <th style={{ padding: '10px', textAlign: 'right' }}>Monto</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -147,6 +165,36 @@ export default function Dashboard({ usuario }: { usuario: any }) {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* C. AQUÍ VA EL PANEL DE ALERTAS */}
+                    <div style={{ flex: 1, minWidth: '300px', background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                        <h3 style={{ textAlign: 'center', color: '#333' }}>🔔 Alertas de Obligaciones</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
+                            {alertas.length === 0 ? (
+                                <p style={{ textAlign: 'center', color: '#999' }}>Sin obligaciones para este periodo.</p>
+                            ) : (
+                                alertas.map((alerta, i) => {
+                                    let colorFondo = '#f8f9fa'; let colorTexto = '#333'; let icono = '⚪';
+                                    if(alerta.ESTADO_PAGO === 'vencida') { colorFondo = '#f8d7da'; colorTexto = '#721c24'; icono = '❌'; }
+                                    if(alerta.ESTADO_PAGO === 'por_vencer') { colorFondo = '#fff3cd'; colorTexto = '#856404'; icono = '⚠️'; }
+                                    if(alerta.ESTADO_PAGO === 'pagada') { colorFondo = '#d4edda'; colorTexto = '#155724'; icono = '✅'; }
+
+                                    return (
+                                        <div key={i} style={{ padding: '12px', borderRadius: '8px', background: colorFondo, color: colorTexto, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div>
+                                                <strong>{icono} {alerta.NOMBRE_OBLIGACION}</strong>
+                                                <div style={{ fontSize: '12px', marginTop: '4px' }}>Día {alerta.DIA_VENCIMIENTO} - L. {parseFloat(alerta.MONTO_FIJO_MENSUAL).toFixed(2)}</div>
+                                            </div>
+                                            <div style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                                {alerta.ESTADO_PAGO.replace('_', ' ')}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

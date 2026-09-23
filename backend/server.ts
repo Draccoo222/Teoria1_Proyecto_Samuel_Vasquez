@@ -366,6 +366,47 @@ app.delete('/api/transacciones/:id', async (req, res) => {
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
+
+// Alertas
+
+app.get('./api/alertas', async(req, res) =>{
+    const{id_usuario, anio, mes, id_presupuesto} = req.query
+
+    try{
+        const conn = await ibmdb.open(connStr);
+
+        const data = await conn.query(`CALL sp_procesar_obligacion_mes(?,?,?,?)`, 
+            [id_usuario, anio, mes, id_presupuesto]
+        );
+        await conn.close();
+
+        res.status(200).json(data);
+    }catch(e:any){
+        res.status(500).json({error: e.message});
+    }
+});
+
+// Cerrar Presupuesto
+
+app.get('./api/presupuestos/:id/cerrar', async(req, res) =>{
+    const {modificado_por} = req.body;
+    try{
+        const conn = await ibmdb.open(connStr);
+
+        
+        const data = await conn.query(`CALL sp_cerrar_presupuesto(?, ?)`, [req.params.id, modificado_por]);
+        await conn.close();
+        res.status(200).json({ mensaje: "Presupuesto cerrado exitosamente", resumen: data });
+
+
+    }catch(e:any){
+        res.status(500).json({error: e.message});
+    }
+
+
+
+})
+
 app.listen(port, () => {
     console.log(`listo en http://localhost:${port}`);
 });
