@@ -270,3 +270,127 @@ app.put('/api/detalles/:id', async (req, res) => {
         res.status(200).json({ mensaje: "Detalle actualizado" });
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
+
+// OBLIGACION FIJA
+
+app.get('/api/obligaciones', async (req, res) => {
+    const { id_usuario, esta_vigente } = req.query;
+    if(!id_usuario) return res.status(400).json({error: "Se requiere id_usuario en la query string"});
+    const vigenteParam = esta_vigente !== undefined ? esta_vigente : 'NULL';
+    try {
+        const conn = await ibmdb.open(connStr);
+        const data = await conn.query(`CALL sp_listar_obligaciones_usuario(${id_usuario}, ${vigenteParam})`);
+        await conn.close();
+        res.status(200).json(data);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/obligaciones/:id', async (req, res) => {
+    try {
+        const conn = await ibmdb.open(connStr);
+        const data = await conn.query(`CALL sp_consultar_obligacion(${req.params.id})`);
+        await conn.close();
+        res.status(200).json(data);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/obligaciones', async (req, res) => {
+    const { id_usuario, id_subcategoria, nombre_obligacion, descripcion, monto, dia_vencimiento, fecha_inicio, fecha_fin, creado_por } = req.body;
+    try {
+        const conn = await ibmdb.open(connStr);
+        const fFin = fecha_fin ? `'${fecha_fin}'` : 'NULL';
+        const query = `CALL sp_insertar_obligacion(${id_usuario}, ${id_subcategoria}, '${nombre_obligacion}', '${descripcion}', ${monto}, ${dia_vencimiento}, '${fecha_inicio}', ${fFin}, ${creado_por}, ?)`;
+        const result = await conn.query(query);
+        await conn.close();
+        res.status(201).json({ mensaje: "Obligación creada", id: result[0] });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/obligaciones/:id', async (req, res) => {
+    const { nombre_obligacion, descripcion, monto, dia_vencimiento, fecha_fin, modificado_por } = req.body;
+    try {
+        const conn = await ibmdb.open(connStr);
+        const fFin = fecha_fin ? `'${fecha_fin}'` : 'NULL';
+        const query = `CALL sp_actualizar_obligacion(${req.params.id}, '${nombre_obligacion}', '${descripcion}', ${monto}, ${dia_vencimiento}, ${fFin}, ${modificado_por})`;
+        await conn.query(query);
+        await conn.close();
+        res.status(200).json({ mensaje: "Obligación actualizada" });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/obligaciones/:id', async (req, res) => {
+    const { modificado_por } = req.body;
+    try {
+        const conn = await ibmdb.open(connStr);
+        await conn.query(`CALL sp_eliminar_obligacion(${req.params.id}, ${modificado_por})`);
+        await conn.close();
+        res.status(200).json({ mensaje: "Obligación inactivada" });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+
+// TRANSACCION
+app.get('/api/transacciones', async (req, res) => {
+    const { id_presupuesto, tipo, id_subcategoria } = req.query;
+    if(!id_presupuesto) return res.status(400).json({error: "Se requiere id_presupuesto en la query string"});
+    const tipoParam = tipo ? `'${tipo}'` : 'NULL';
+    const subcatParam = id_subcategoria ? id_subcategoria : 'NULL';
+    
+    try {
+        const conn = await ibmdb.open(connStr);
+        const data = await conn.query(`CALL sp_listar_transacciones_preupuesto(${id_presupuesto}, ${tipoParam}, ${subcatParam})`);
+        await conn.close();
+        res.status(200).json(data);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/transacciones/:id', async (req, res) => {
+    try {
+        const conn = await ibmdb.open(connStr);
+        const data = await conn.query(`CALL sp_calcular_transaccion(${req.params.id})`); 
+        await conn.close();
+        res.status(200).json(data);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/transacciones', async (req, res) => {
+    const { id_usuario, id_presupuesto, anio, mes, id_subcategoria, id_obligacion, tipo_transaccion, descripcion, monto, fecha_movimiento, metodo_pago, numero_factura, observaciones, creado_por } = req.body;
+    try {
+        const conn = await ibmdb.open(connStr);
+        const idOblig = id_obligacion ? id_obligacion : 'NULL';
+        const numFact = numero_factura ? `'${numero_factura}'` : 'NULL';
+        const obs = observaciones ? `'${observaciones}'` : 'NULL';
+        
+        const query = `CALL sp_insertar_transaccion(${id_usuario}, ${id_presupuesto}, ${anio}, ${mes}, ${id_subcategoria}, ${idOblig}, '${tipo_transaccion}', '${descripcion}', ${monto}, '${fecha_movimiento}', '${metodo_pago}', ${numFact}, ${obs}, ${creado_por}, ?)`;
+        const result = await conn.query(query);
+        await conn.close();
+        res.status(201).json({ mensaje: "Transacción creada", id: result[0] });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/transacciones/:id', async (req, res) => {
+    const { descripcion, monto, fecha_movimiento, metodo_pago, numero_factura, observaciones, modificado_por } = req.body;
+    try {
+        const conn = await ibmdb.open(connStr);
+        const numFact = numero_factura ? `'${numero_factura}'` : 'NULL';
+        const obs = observaciones ? `'${observaciones}'` : 'NULL';
+        
+        const query = `CALL sp_actualizar_transaccion(${req.params.id}, '${descripcion}', ${monto}, '${fecha_movimiento}', '${metodo_pago}', ${numFact}, ${obs}, ${modificado_por})`;
+        await conn.query(query);
+        await conn.close();
+        res.status(200).json({ mensaje: "Transacción actualizada" });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/transacciones/:id', async (req, res) => {
+    try {
+        const conn = await ibmdb.open(connStr);
+        const result = await conn.query(`CALL sp_eliminar_transaccion(${req.params.id}, ?)`);
+        await conn.close();
+        res.status(200).json({ mensaje: "Transacción eliminada", tipo_transaccion: result[0] });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.listen(port, () => {
+    console.log('Backend Creado');
+})
